@@ -1,0 +1,47 @@
+{
+  "name": "usda-nutrition-mcp-server",
+  "version": "1.0.0",
+  "description": "USDA Nutrition MCP Server - Model Context Protocol server for USDA FoodData Central API integration",
+  "main": "src/mcp_server.py",
+  "bin": {
+    "usda-nutrition-mcp-server": "./src/mcp_server.py"
+  },
+  "scripts": {
+    "start": "python -m src.mcp_server",
+    "dev": "python -m src.mcp_server",
+    "test": "python -m pytest tests/",
+    "lint": "ruff check src/",
+    "format": "ruff format src/"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "usda",
+    "nutrition",
+    "food",
+    "claude",
+    "ai",
+    "api"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/mcp-nutrition-tools"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/mcp-nutrition-tools/issues"
+  },
+  "homepage": "https://github.com/yourusername/mcp-nutrition-tools#readme",
+  "engines": {
+    "python": ">=3.8"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "files": [
+    "src/",
+    "README.md",
+    "requirements.txt",
+    "requirements-prod.txt"
+  ]
+}

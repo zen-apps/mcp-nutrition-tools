@@ -1,7 +1,7 @@
-# 🥗 USDA Nutrition MCP API
+# 🥗 USDA Nutrition MCP Server
 
 > **Model Context Protocol (MCP) server providing nutrition tools powered by USDA FoodData Central**  
-> Framework-agnostic HTTP API for intelligent nutrition analysis
+> Connect AI assistants to 600k+ foods with comprehensive nutrition data
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
@@ -10,41 +10,102 @@
 
 ## 🌟 Overview
 
-This MCP server transforms the USDA FoodData Central database (600k+ foods) into intelligent, accessible nutrition tools for AI agents and applications. Built with FastAPI, it provides both MCP protocol compatibility and standard HTTP REST endpoints.
+This MCP server transforms the USDA FoodData Central database (600k+ foods) into intelligent, accessible nutrition tools for AI assistants like Claude. Built with FastMCP, it provides standardized MCP protocol tools for nutrition analysis.
 
 **Perfect for:**
-- 🤖 **AI Agents** - LangGraph, LlamaIndex, custom agents
+- 🤖 **AI Assistants** - Claude Desktop, custom MCP clients
 - 📱 **Nutrition Apps** - Diet tracking, meal planning, health coaching
 - 🔬 **Research** - Nutritional analysis, food comparison studies
 - 💻 **Developer Tools** - Any application needing nutrition data
 
-## 🚀 Quick Start
+## 🔌 MCP Configuration
 
-### **Live Demo**
-```bash
-# Health check
-curl https://your-service-url.run.app/health
+### **Claude Desktop Setup**
 
-# Search foods
-curl -X POST https://your-service-url.run.app/tools/search_foods \
-  -H "Content-Type: application/json" \
-  -d '{"query": "chicken breast", "page_size": 5}'
+Add to your Claude Desktop configuration (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
 
-# Interactive docs
-open https://your-service-url.run.app/docs
+```json
+{
+  "mcpServers": {
+    "usda-nutrition": {
+      "command": "python",
+      "args": ["-m", "src.mcp_server"],
+      "cwd": "/path/to/mcp-nutrition-tools",
+      "env": {
+        "FDC_API_KEY": "your_usda_api_key_here"
+      }
+    }
+  }
+}
 ```
 
-### **Local Development**
+### **Alternative: NPM Installation** 
 ```bash
-git clone <your-repo>
-cd usda-nutrition-ai-toolkit
+# Install globally (coming soon)
+npm install -g usda-nutrition-mcp-server
+
+# Then configure Claude Desktop with:
+{
+  "mcpServers": {
+    "usda-nutrition": {
+      "command": "usda-nutrition-mcp-server",
+      "env": {
+        "FDC_API_KEY": "your_usda_api_key_here"
+      }
+    }
+  }
+}
+```
+
+### **Available MCP Tools**
+
+Once configured, Claude will have access to these nutrition tools:
+
+- **`search_foods`** - Search USDA database for foods
+- **`get_food_details`** - Get detailed nutrition information  
+- **`get_multiple_foods`** - Get nutrition for multiple foods at once
+- **`analyze_nutrition`** - Compare nutritional data across foods
+
+### **Example Usage with Claude**
+
+> "Search for high-protein foods and compare chicken breast with salmon"
+
+Claude will use the MCP tools to:
+1. Search for protein-rich foods
+2. Get detailed nutrition data
+3. Provide a comprehensive comparison
+
+## 🚀 Quick Start
+
+### **Installation & Setup**
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/mcp-nutrition-tools
+cd mcp-nutrition-tools
+
+# Install dependencies
 pip install -r requirements.txt
 
-# Add your USDA API key to .env
+# Get your free USDA API key from https://fdc.nal.usda.gov/api-guide.html
 echo "FDC_API_KEY=your_key_here" > .env
 
-# Run locally
-python -m uvicorn src.mcp_http_server:app --reload
+# Test the MCP server
+python -m src.mcp_server
+```
+
+### **Quick Test**
+```bash
+# Test MCP tools directly
+python -c "
+import asyncio
+from src.mcp_server import search_foods
+
+async def test():
+    result = await search_foods('apple')
+    print(result)
+
+asyncio.run(test())
+"
 ```
 
 ## 🛠 API Reference
