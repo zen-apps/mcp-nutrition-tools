@@ -1,0 +1,52 @@
+# Development Dockerfile for local testing
+FROM python:3.11-slim
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV ENVIRONMENT=development
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    vim \
+    git \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create app directory
+WORKDIR /app
+
+# Copy requirements first (for better caching)
+COPY requirements*.txt ./
+
+# Install Python dependencies
+RUN pip install --upgrade pip
+
+# Install core requirements first
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Install development dependencies with error handling
+RUN if [ -f requirements-dev.txt ]; then \
+        pip install --no-cache-dir -r requirements-dev.txt || \
+        echo "Warning: Some dev dependencies failed to install"; \
+    fi
+
+# Create non-root user for security
+RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+USER appuser
+
+# Copy source code (do this last for better caching)
+COPY --chown=appuser:appuser . .
+
+# Expose ports
+EXPOSE 8080
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
+
+# Default command for development (with auto-reload)
+CMD ["python", "-m", "uvicorn", "src.mcp_http_server:app", "--host", "0.0.0.0", "--port", "8080", "--reload", "--log-level", "debug"]
+

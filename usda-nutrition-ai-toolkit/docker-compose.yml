@@ -1,0 +1,23 @@
+# Development environment with Docker Compose
+version: '3.3'
+
+services:
+  mcp-server:
+    build:
+      context: .
+      dockerfile: Dockerfile-dev
+    container_name: usda-mcp-dev
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./src:/app/src
+      - ./examples:/app/examples
+      - ./tests:/app/tests
+    environment:
+      - ENVIRONMENT=development
+      - LOG_LEVEL=DEBUG
+      - FDC_API_KEY=${FDC_API_KEY}
+    env_file:
+      - .env
+    command: python -m uvicorn src.mcp_http_server:app --host 0.0.0.0 --port 8080 --reload --log-level debug
