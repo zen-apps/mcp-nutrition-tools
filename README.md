@@ -22,6 +22,7 @@ This MCP server transforms the USDA FoodData Central database (600k+ foods) into
 
 ### **Claude Desktop Setup**
 
+#### **Option 1: Local Development**
 Add to your Claude Desktop configuration (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
 
 ```json
@@ -34,6 +35,36 @@ Add to your Claude Desktop configuration (`~/Library/Application Support/Claude/
       "env": {
         "FDC_API_KEY": "your_usda_api_key_here"
       }
+    }
+  }
+}
+```
+
+#### **Option 2: HTTP Connection to Deployed Server**
+For Docker or Cloud Run deployments, use HTTP connection:
+
+```json
+{
+  "mcpServers": {
+    "usda-nutrition": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-everything"],
+      "env": {
+        "MCP_HTTP_URL": "https://your-service-url.run.app"
+      }
+    }
+  }
+}
+```
+
+#### **Option 3: Using MCP HTTP Bridge**
+```json
+{
+  "mcpServers": {
+    "usda-nutrition": {
+      "command": "python",
+      "args": ["-m", "mcp_http_bridge", "https://your-service-url.run.app"],
+      "env": {}
     }
   }
 }
@@ -68,12 +99,30 @@ Once configured, Claude will have access to these nutrition tools:
 
 ### **Example Usage with Claude**
 
-> "Search for high-protein foods and compare chicken breast with salmon"
+#### **Real MCP Demo Examples**
 
-Claude will use the MCP tools to:
-1. Search for protein-rich foods
-2. Get detailed nutrition data
-3. Provide a comprehensive comparison
+**Query:** *"Search for high-protein foods and compare chicken breast with salmon"*
+
+Claude will automatically use the MCP tools:
+1. **search_foods** - Find protein-rich foods in USDA database
+2. **get_food_details** - Get nutrition data for chicken breast and salmon  
+3. **analyze_nutrition** - Compare protein, calories, and other nutrients
+4. Provide comprehensive analysis with recommendations
+
+**Query:** *"What are the best foods for someone trying to build muscle?"*
+
+Claude's workflow:
+1. **search_foods("high protein lean meat")** → Find muscle-building foods
+2. **get_multiple_foods([ids])** → Get nutrition for top results
+3. **analyze_nutrition** → Compare protein efficiency, amino acid profiles
+4. Recommend optimal foods with portion guidance
+
+**Query:** *"I'm vegetarian and need more iron. What foods should I eat?"*
+
+Claude's response:
+1. **search_foods("iron rich vegetarian")** → Find plant-based iron sources
+2. **get_food_details** → Analyze iron content and bioavailability factors
+3. **nutrition_guidance** → Suggest combinations that enhance iron absorption
 
 ## 🚀 Quick Start
 

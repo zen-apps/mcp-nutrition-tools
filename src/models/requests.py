@@ -25,3 +25,10 @@ class NutritionQuestionParams(BaseModel):
     """Parameters for nutrition question helper"""
     question: str = Field(..., description="Nutrition question", min_length=5)
     context: Optional[str] = Field(None, description="Additional context")
+
+class AgentTestParams(BaseModel):
+    """Parameters for agent integration demos"""
+    agent_type: str = Field(..., description="Type of agent to demo", pattern="^(claude|openai|langchain)$")
+    query: Optional[str] = Field(None, description="Nutrition query to test with")
+    claude_api_key: Optional[str] = Field(None, description="Claude API key for live demo", min_length=10)
+    openai_api_key: Optional[str] = Field(None, description="OpenAI API key for live demo", min_length=10)

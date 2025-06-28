@@ -17,7 +17,7 @@ from fastmcp import FastMCP
 import structlog
 
 from .usda_client import USDAClient
-from .models.responses import FoodSearchResponse, FoodDetailsResponse
+# from .models.responses import FoodSearchResponse, FoodDetailsResponse  # Not needed for MCP tools
 
 logger = structlog.get_logger("mcp_server")
 
