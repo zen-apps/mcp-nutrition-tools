@@ -20,3 +20,6 @@ up: stop rm
 
 down:
 	docker-compose down
+
+logs:
+	docker-compose logs -f

@@ -307,9 +307,15 @@ async def search_foods(params: SearchParams):
                 "foods": formatted_foods,
                 "message": f"Found {len(formatted_foods)} foods matching '{params.query}'",
             }
+            print(
+                f"search_foods: Found {len(formatted_foods)} foods for query '{params.query}'"
+            )
+
         else:
             response_data = {"success": False, "error": "No foods found", "foods": []}
-
+        logger.info(
+            "search_foods_completed", foods_found=len(response_data.get("foods", []))
+        )
         return MCPResponse(success=True, data=response_data, tool="search_foods")
 
     except Exception as e:
@@ -763,30 +769,33 @@ async def test_mcp_tools():
 # INTERACTIVE DEMO ENDPOINTS - Run directly from Swagger UI!
 # =============================================================================
 
-@app.get("/demo/protein-search", 
+
+@app.get(
+    "/demo/protein-search",
     summary="🥩 Demo: Find High-Protein Foods",
     description="**Interactive Demo** - Finds high-protein foods like Claude would. Click 'Try it out' to run!",
     response_model=MCPResponse,
-    tags=["🎯 Interactive Demos"])
+    tags=["🎯 Interactive Demos"],
+)
 async def demo_protein_search():
     """Demo: Search for high-protein foods and analyze nutrition"""
     try:
         logger.info("demo_protein_search_called")
-        
+
         # Step 1: Search for protein sources
-        search_params = SearchParams(query="chicken breast salmon greek yogurt", page_size=3)
+        search_params = SearchParams(
+            query="chicken breast salmon greek yogurt", page_size=3
+        )
         search_result = await search_foods(search_params)
-        
+
         if not search_result.success:
             return MCPResponse(
-                success=False,
-                error="Search failed",
-                tool="demo_protein_search"
+                success=False, error="Search failed", tool="demo_protein_search"
             )
-        
+
         foods = search_result.data["foods"][:2]  # Top 2
         fdc_ids = [food["fdc_id"] for food in foods if food.get("fdc_id")]
-        
+
         # Step 2: Get detailed nutrition
         nutrition_details = []
         for fdc_id in fdc_ids[:2]:
@@ -794,116 +803,131 @@ async def demo_protein_search():
             nutrition = await get_food_nutrition(detail_params)
             if nutrition.success:
                 nutrition_details.append(nutrition.data)
-        
+
         # Step 3: Compare if we have 2+ foods
         comparison_result = None
         if len(fdc_ids) >= 2:
             compare_params = CompareFoodsParams(fdc_ids=fdc_ids[:2])
             comparison_result = await compare_foods(compare_params)
-        
+
         # Claude-style response
         demo_response = {
             "demo_scenario": "🥩 High-Protein Food Search (Claude MCP Style)",
             "user_query": "What are good high-protein foods for athletes?",
             "claude_workflow": [
                 "1. 🔍 search_foods('chicken breast salmon greek yogurt')",
-                "2. 🔬 get_food_nutrition() for top results", 
+                "2. 🔬 get_food_nutrition() for top results",
                 "3. ⚖️ compare_foods() to analyze differences",
-                "4. 💬 Synthesize recommendations"
+                "4. 💬 Synthesize recommendations",
             ],
             "search_results": {
                 "foods_found": len(foods),
-                "top_foods": [{"name": f["description"], "fdc_id": f["fdc_id"]} for f in foods]
+                "top_foods": [
+                    {"name": f["description"], "fdc_id": f["fdc_id"]} for f in foods
+                ],
             },
             "nutrition_analysis": nutrition_details,
-            "comparison": comparison_result.data if comparison_result and comparison_result.success else None,
+            "comparison": (
+                comparison_result.data
+                if comparison_result and comparison_result.success
+                else None
+            ),
             "claude_recommendations": [
                 "🐔 Chicken breast: Excellent lean protein (~31g per 100g)",
                 "🐟 Salmon: High protein + omega-3 fatty acids",
                 "🥛 Greek yogurt: Protein + probiotics for gut health",
-                "🎯 Target: 1.6-2.2g protein per kg body weight for athletes"
+                "🎯 Target: 1.6-2.2g protein per kg body weight for athletes",
             ],
             "next_steps": [
                 "Try asking Claude: 'Compare protein absorption rates'",
-                "Or: 'What's the best protein timing for muscle growth?'"
-            ]
+                "Or: 'What's the best protein timing for muscle growth?'",
+            ],
         }
-        
+
         return MCPResponse(
             success=True,
             data=demo_response,
             tool="demo_protein_search",
-            message="🎉 Demo complete! This is exactly how Claude Desktop uses MCP tools."
+            message="🎉 Demo complete! This is exactly how Claude Desktop uses MCP tools.",
         )
-        
+
     except Exception as e:
         logger.error("demo_protein_search_failed", error=str(e))
         return MCPResponse(
-            success=False,
-            error=f"Demo failed: {str(e)}",
-            tool="demo_protein_search"
+            success=False, error=f"Demo failed: {str(e)}", tool="demo_protein_search"
         )
 
 
-@app.get("/demo/weight-loss-foods",
-    summary="🥗 Demo: Weight Loss Food Finder", 
+@app.get(
+    "/demo/weight-loss-foods",
+    summary="🥗 Demo: Weight Loss Food Finder",
     description="**Interactive Demo** - Finds low-calorie, high-fiber foods for weight loss. One-click demo!",
     response_model=MCPResponse,
-    tags=["🎯 Interactive Demos"])
+    tags=["🎯 Interactive Demos"],
+)
 async def demo_weight_loss_foods():
     """Demo: Find optimal foods for weight loss"""
     try:
         logger.info("demo_weight_loss_foods_called")
-        
+
         # Search for weight-loss friendly foods
-        search_params = SearchParams(query="broccoli spinach apple berries", page_size=4)
+        search_params = SearchParams(
+            query="broccoli spinach apple berries", page_size=4
+        )
         search_result = await search_foods(search_params)
-        
+
         if not search_result.success:
-            return MCPResponse(success=False, error="Search failed", tool="demo_weight_loss")
-        
+            return MCPResponse(
+                success=False, error="Search failed", tool="demo_weight_loss"
+            )
+
         foods = search_result.data["foods"][:3]
         food_analyses = []
-        
+
         # Analyze each food for weight loss metrics
         for food in foods:
             fdc_id = food.get("fdc_id")
             if fdc_id:
                 detail_params = FoodDetailParams(fdc_id=fdc_id)
                 nutrition = await get_food_nutrition(detail_params)
-                
+
                 if nutrition.success:
                     macros = nutrition.data["nutrition"]["macronutrients"]
                     calories = macros.get("Energy (kcal)", {}).get("amount", 0)
                     fiber = macros.get("Fiber", {}).get("amount", 0)
-                    
-                    food_analyses.append({
-                        "food": food["description"],
-                        "calories": calories,
-                        "fiber": fiber,
-                        "fiber_per_calorie": fiber / calories if calories > 0 else 0,
-                        "weight_loss_score": (fiber * 10) / (calories if calories > 0 else 1)  # Higher is better
-                    })
-        
+
+                    food_analyses.append(
+                        {
+                            "food": food["description"],
+                            "calories": calories,
+                            "fiber": fiber,
+                            "fiber_per_calorie": (
+                                fiber / calories if calories > 0 else 0
+                            ),
+                            "weight_loss_score": (fiber * 10)
+                            / (calories if calories > 0 else 1),  # Higher is better
+                        }
+                    )
+
         # Sort by weight loss effectiveness
         food_analyses.sort(key=lambda x: x["weight_loss_score"], reverse=True)
-        
+
         demo_response = {
             "demo_scenario": "🥗 Weight Loss Food Optimization",
             "user_query": "What are the best low-calorie, high-fiber foods for weight loss?",
             "claude_analysis": {
                 "methodology": "Analyze fiber-to-calorie ratio for satiety vs calories",
                 "foods_analyzed": len(food_analyses),
-                "ranking_criteria": "Higher fiber + Lower calories = Better for weight loss"
+                "ranking_criteria": "Higher fiber + Lower calories = Better for weight loss",
             },
             "food_rankings": [
                 {
                     "rank": i + 1,
                     "food": food["food"],
                     "calories": f"{food['calories']}kcal per 100g",
-                    "fiber": f"{food['fiber']}g per 100g", 
+                    "fiber": f"{food['fiber']}g per 100g",
                     "efficiency": f"{food['fiber_per_calorie']:.3f}g fiber per calorie",
-                    "weight_loss_score": f"{food['weight_loss_score']:.1f}/10"
+                    "weight_loss_score": f"{food['weight_loss_score']:.1f}/10",
                 }
                 for i, food in enumerate(food_analyses)
             ],
@@ -911,66 +935,73 @@ async def demo_weight_loss_foods():
                 f"🥇 Top choice: {food_analyses[0]['food']} - Maximum fiber with minimal calories",
                 "🍎 Aim for foods with >3g fiber per 100 calories",
                 "🥬 Vegetables are your best friends for sustainable weight loss",
-                "💧 High water content foods increase satiety"
+                "💧 High water content foods increase satiety",
             ],
             "meal_planning_tips": [
                 "Fill half your plate with these high-fiber, low-calorie foods",
                 "Eat these before higher-calorie foods to reduce overall intake",
-                "Combine with lean protein for complete satiety"
-            ]
+                "Combine with lean protein for complete satiety",
+            ],
         }
-        
+
         return MCPResponse(
             success=True,
             data=demo_response,
             tool="demo_weight_loss_foods",
-            message="🎯 Weight loss food analysis complete!"
+            message="🎯 Weight loss food analysis complete!",
         )
-        
+
     except Exception as e:
         return MCPResponse(success=False, error=str(e), tool="demo_weight_loss_foods")
 
 
-@app.get("/demo/vegetarian-iron",
+@app.get(
+    "/demo/vegetarian-iron",
     summary="🌱 Demo: Vegetarian Iron Sources",
     description="**Interactive Demo** - Finds iron-rich plant foods for vegetarians. Perfect for dietary planning!",
     response_model=MCPResponse,
-    tags=["🎯 Interactive Demos"])
+    tags=["🎯 Interactive Demos"],
+)
 async def demo_vegetarian_iron():
     """Demo: Find iron-rich foods for vegetarians"""
     try:
         logger.info("demo_vegetarian_iron_called")
-        
+
         # Search for iron-rich plant foods
         search_params = SearchParams(query="spinach lentils tofu quinoa", page_size=4)
         search_result = await search_foods(search_params)
-        
+
         if not search_result.success:
-            return MCPResponse(success=False, error="Search failed", tool="demo_vegetarian_iron")
-        
+            return MCPResponse(
+                success=False, error="Search failed", tool="demo_vegetarian_iron"
+            )
+
         foods = search_result.data["foods"][:3]
         iron_sources = []
-        
+
         for food in foods:
             fdc_id = food.get("fdc_id")
             if fdc_id:
                 detail_params = FoodDetailParams(fdc_id=fdc_id)
                 nutrition = await get_food_nutrition(detail_params)
-                
+
                 if nutrition.success:
                     minerals = nutrition.data["nutrition"].get("minerals", {})
                     iron = minerals.get("Iron", {}).get("amount", 0)
-                    
+
                     if iron > 0:
-                        iron_sources.append({
-                            "food": food["description"],
-                            "iron_mg": iron,
-                            "daily_value_percent": (iron / 18) * 100,  # Based on 18mg RDA for women
-                            "absorption_type": "Non-heme (plant-based)"
-                        })
-        
+                        iron_sources.append(
+                            {
+                                "food": food["description"],
+                                "iron_mg": iron,
+                                "daily_value_percent": (iron / 18)
+                                * 100,  # Based on 18mg RDA for women
+                                "absorption_type": "Non-heme (plant-based)",
+                            }
+                        )
+
         iron_sources.sort(key=lambda x: x["iron_mg"], reverse=True)
-        
+
         demo_response = {
             "demo_scenario": "🌱 Vegetarian Iron Optimization",
             "user_query": "I'm vegetarian and need more iron. What foods should I eat?",
@@ -978,16 +1009,16 @@ async def demo_vegetarian_iron():
                 "daily_needs": {
                     "men": "8mg per day",
                     "women": "18mg per day (premenopausal)",
-                    "vegetarian_challenge": "Plant iron (non-heme) is less absorbable than meat iron"
+                    "vegetarian_challenge": "Plant iron (non-heme) is less absorbable than meat iron",
                 },
-                "foods_analyzed": len(iron_sources)
+                "foods_analyzed": len(iron_sources),
             },
             "iron_rich_foods": [
                 {
                     "food": source["food"],
                     "iron_content": f"{source['iron_mg']}mg per 100g",
                     "daily_value": f"{source['daily_value_percent']:.1f}% DV",
-                    "absorption_tip": "Combine with vitamin C for better absorption"
+                    "absorption_tip": "Combine with vitamin C for better absorption",
                 }
                 for source in iron_sources
             ],
@@ -995,97 +1026,121 @@ async def demo_vegetarian_iron():
                 f"🥬 Best source: {iron_sources[0]['food']} with {iron_sources[0]['iron_mg']}mg iron",
                 "🍊 Always pair with vitamin C foods (citrus, bell peppers, strawberries)",
                 "☕ Avoid tea/coffee with iron-rich meals (reduces absorption by 50-90%)",
-                "🍳 Cook in cast iron pans to boost iron content"
+                "🍳 Cook in cast iron pans to boost iron content",
             ],
             "meal_combinations": [
                 "🥗 Spinach salad + strawberries + lemon dressing",
-                "🍲 Lentil curry + tomatoes + bell peppers", 
-                "🥘 Tofu stir-fry + broccoli + orange segments"
+                "🍲 Lentil curry + tomatoes + bell peppers",
+                "🥘 Tofu stir-fry + broccoli + orange segments",
             ],
             "absorption_enhancers": ["Vitamin C", "Meat proteins", "Fermented foods"],
-            "absorption_inhibitors": ["Tea", "Coffee", "Calcium supplements", "Whole grains (phytates)"]
+            "absorption_inhibitors": [
+                "Tea",
+                "Coffee",
+                "Calcium supplements",
+                "Whole grains (phytates)",
+            ],
         }
-        
+
         return MCPResponse(
             success=True,
             data=demo_response,
             tool="demo_vegetarian_iron",
-            message="🌱 Vegetarian iron guide complete!"
+            message="🌱 Vegetarian iron guide complete!",
         )
-        
+
     except Exception as e:
         return MCPResponse(success=False, error=str(e), tool="demo_vegetarian_iron")
 
 
-@app.get("/demo/meal-planning",
+@app.get(
+    "/demo/meal-planning",
     summary="🍽️ Demo: Balanced Meal Planning",
     description="**Interactive Demo** - Plans a nutritionally balanced meal. Great for meal prep inspiration!",
-    response_model=MCPResponse,  
-    tags=["🎯 Interactive Demos"])
+    response_model=MCPResponse,
+    tags=["🎯 Interactive Demos"],
+)
 async def demo_meal_planning():
     """Demo: Plan a balanced meal with optimal macros"""
     try:
         logger.info("demo_meal_planning_called")
-        
+
         # Search for balanced meal components
         components = {
             "protein": "chicken breast",
-            "complex_carbs": "brown rice", 
+            "complex_carbs": "brown rice",
             "healthy_fats": "avocado",
-            "vegetables": "broccoli"
+            "vegetables": "broccoli",
         }
-        
+
         meal_components = []
         fdc_ids = []
-        
+
         for component_type, food_query in components.items():
             search_params = SearchParams(query=food_query, page_size=1)
             search_result = await search_foods(search_params)
-            
+
             if search_result.success and search_result.data["foods"]:
                 food = search_result.data["foods"][0]
                 fdc_id = food.get("fdc_id")
                 if fdc_id:
                     fdc_ids.append(fdc_id)
-                    meal_components.append({
-                        "component": component_type,
-                        "food": food["description"],
-                        "fdc_id": fdc_id
-                    })
-        
+                    meal_components.append(
+                        {
+                            "component": component_type,
+                            "food": food["description"],
+                            "fdc_id": fdc_id,
+                        }
+                    )
+
         # Get nutrition for all components
         nutrition_data = []
         for component in meal_components:
             detail_params = FoodDetailParams(fdc_id=component["fdc_id"])
             nutrition = await get_food_nutrition(detail_params)
             if nutrition.success:
-                nutrition_data.append({
-                    **component,
-                    "nutrition": nutrition.data["nutrition"]["macronutrients"]
-                })
-        
+                nutrition_data.append(
+                    {
+                        **component,
+                        "nutrition": nutrition.data["nutrition"]["macronutrients"],
+                    }
+                )
+
         # Compare all meal components
         comparison_result = None
         if len(fdc_ids) >= 2:
             compare_params = CompareFoodsParams(fdc_ids=fdc_ids)
             comparison_result = await compare_foods(compare_params)
-        
+
         # Calculate meal totals (example portions)
-        portions = {"protein": 150, "complex_carbs": 80, "healthy_fats": 50, "vegetables": 200}  # grams
+        portions = {
+            "protein": 150,
+            "complex_carbs": 80,
+            "healthy_fats": 50,
+            "vegetables": 200,
+        }  # grams
         meal_totals = {"calories": 0, "protein": 0, "carbs": 0, "fat": 0}
-        
+
         for data in nutrition_data:
             component = data["component"]
             portion_g = portions.get(component, 100)
             nutrition = data["nutrition"]
-            
+
             # Scale nutrition to portion size
             multiplier = portion_g / 100
-            meal_totals["calories"] += nutrition.get("Energy (kcal)", {}).get("amount", 0) * multiplier
-            meal_totals["protein"] += nutrition.get("Protein", {}).get("amount", 0) * multiplier  
-            meal_totals["carbs"] += nutrition.get("Carbohydrate", {}).get("amount", 0) * multiplier
-            meal_totals["fat"] += nutrition.get("Total Fat", {}).get("amount", 0) * multiplier
-        
+            meal_totals["calories"] += (
+                nutrition.get("Energy (kcal)", {}).get("amount", 0) * multiplier
+            )
+            meal_totals["protein"] += (
+                nutrition.get("Protein", {}).get("amount", 0) * multiplier
+            )
+            meal_totals["carbs"] += (
+                nutrition.get("Carbohydrate", {}).get("amount", 0) * multiplier
+            )
+            meal_totals["fat"] += (
+                nutrition.get("Total Fat", {}).get("amount", 0) * multiplier
+            )
+
         demo_response = {
             "demo_scenario": "🍽️ Balanced Meal Planning",
             "user_query": "Help me plan a balanced meal with good macros for muscle building",
@@ -1096,46 +1151,46 @@ async def demo_meal_planning():
                     "portion": f"{portions.get(comp['component'], 100)}g",
                     "why_chosen": {
                         "protein": "Complete amino acid profile, lean protein",
-                        "complex_carbs": "Sustained energy, B vitamins, fiber", 
+                        "complex_carbs": "Sustained energy, B vitamins, fiber",
                         "healthy_fats": "Essential fatty acids, fat-soluble vitamins",
-                        "vegetables": "Micronutrients, fiber, antioxidants"
-                    }.get(comp["component"], "Nutritional balance")
+                        "vegetables": "Micronutrients, fiber, antioxidants",
+                    }.get(comp["component"], "Nutritional balance"),
                 }
                 for comp in meal_components
             ],
             "meal_totals": {
                 "total_calories": f"{meal_totals['calories']:.0f}kcal",
                 "protein": f"{meal_totals['protein']:.1f}g ({meal_totals['protein']*4/meal_totals['calories']*100:.0f}% calories)",
-                "carbohydrates": f"{meal_totals['carbs']:.1f}g ({meal_totals['carbs']*4/meal_totals['calories']*100:.0f}% calories)", 
-                "fat": f"{meal_totals['fat']:.1f}g ({meal_totals['fat']*9/meal_totals['calories']*100:.0f}% calories)"
+                "carbohydrates": f"{meal_totals['carbs']:.1f}g ({meal_totals['carbs']*4/meal_totals['calories']*100:.0f}% calories)",
+                "fat": f"{meal_totals['fat']:.1f}g ({meal_totals['fat']*9/meal_totals['calories']*100:.0f}% calories)",
             },
             "nutritional_analysis": {
                 "macro_balance": "Optimal for muscle building and recovery",
                 "protein_target": "30-40g protein per meal for muscle synthesis",
                 "carb_timing": "Complex carbs for sustained energy",
-                "micronutrients": "Vegetables provide essential vitamins and minerals"
+                "micronutrients": "Vegetables provide essential vitamins and minerals",
             },
             "claude_recommendations": [
                 f"🍗 Protein: {meal_totals['protein']:.1f}g supports muscle recovery",
                 f"🍚 Carbs: {meal_totals['carbs']:.1f}g provides sustained energy",
                 f"🥑 Fats: {meal_totals['fat']:.1f}g supports hormone production",
-                f"📊 Total: {meal_totals['calories']:.0f}kcal - perfect for active individuals"
+                f"📊 Total: {meal_totals['calories']:.0f}kcal - perfect for active individuals",
             ],
             "meal_prep_tips": [
                 "Prep proteins in bulk on Sundays",
-                "Cook grains in batches for the week", 
+                "Cook grains in batches for the week",
                 "Pre-cut vegetables for quick assembly",
-                "Season with herbs/spices for variety"
-            ]
+                "Season with herbs/spices for variety",
+            ],
         }
-        
+
         return MCPResponse(
             success=True,
             data=demo_response,
             tool="demo_meal_planning",
-            message="🍽️ Balanced meal plan complete!"
+            message="🍽️ Balanced meal plan complete!",
         )
-        
+
     except Exception as e:
         return MCPResponse(success=False, error=str(e), tool="demo_meal_planning")
 
