@@ -20,24 +20,13 @@ This MCP server transforms the USDA FoodData Central database (600k+ foods) into
 
 ## 🔌 MCP Configuration
 
-### **Claude Desktop Setup**
+## Quick Setup for Claude Desktop
 
-#### **Option 1: Local Development**
-Add to your Claude Desktop configuration (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
-
-```json
-{
-  "mcpServers": {
-    "usda-nutrition": {
-      "command": "python",
-      "args": ["-m", "src.mcp_server"],
-      "cwd": "/path/to/mcp-nutrition-tools",
-      "env": {
-        "FDC_API_KEY": "your_usda_api_key_here"
-      }
-    }
-  }
-}
+1. **Clone and install:**
+   ```bash
+   git clone https://github.com/your-username/mcp-nutrition-tools
+   cd mcp-nutrition-tools
+   pip install mcp httpx
 ```
 
 #### **Option 2: HTTP Connection to Deployed Server**
