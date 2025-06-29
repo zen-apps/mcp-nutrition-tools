@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "usda-nutrition": {
+      "command": "python",
+      "args": [
+        "-m",
+        "src.mcp_server"
+      ],
+      "cwd": "/<path>/mcp-nutrition-tools",
+      "env": {
+        "FDC_API_KEY": "<your_fdc_api_key_here>",
+      }
+    }
+  }
+}

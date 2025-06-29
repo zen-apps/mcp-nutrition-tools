@@ -1,0 +1,13 @@
+{
+    "mcpServers": {
+        "usda-nutrition": {
+            "command": "python",
+            "args": [
+                "src/mcp_bridge.py",
+                "--server-url",
+                "https://usda-nutrition-mcp-oc46l7ob5a-uc.a.run.app"
+            ],
+            "cwd": "/path/to/your/mcp-nutrition-tools"
+        }
+    }
+}
