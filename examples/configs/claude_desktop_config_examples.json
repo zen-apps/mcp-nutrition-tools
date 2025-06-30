@@ -1,0 +1,61 @@
+{
+    "_comment": "USDA Nutrition MCP - Claude Desktop Configuration Examples",
+    "_instructions": [
+        "Choose ONE option below and copy it to your Claude Desktop config file:",
+        "macOS: ~/Library/Application Support/Claude/claude_desktop_config.json",
+        "Windows: %APPDATA%/Claude/claude_desktop_config.json",
+        "Remove all comments (lines starting with _) before saving!"
+    ],
+
+    "_option_1": "=== RECOMMENDED: HOSTED SERVICE ===",
+    "_option_1_note": "Uses shared server at https://usda-nutrition-mcp-oc46l7ob5a-uc.a.run.app (1,000 requests/hour total)",
+    "mcpServers_hosted": {
+        "usda-nutrition": {
+            "command": "python3",
+            "args": ["/path/to/mcp-nutrition-tools/src/mcp_bridge.py"],
+            "cwd": "/path/to/mcp-nutrition-tools"
+        }
+    },
+
+    "_option_2": "=== LOCAL DEPLOYMENT (UNLIMITED) ===", 
+    "_option_2_setup": [
+        "1. Get USDA API key from https://fdc.nal.usda.gov/api-guide.html",
+        "2. Run: docker run -p 8080:8080 -e FDC_API_KEY=your_key_here nutrition-mcp",
+        "3. Use config below"
+    ],
+    "mcpServers_local": {
+        "usda-nutrition": {
+            "command": "python3", 
+            "args": [
+                "/path/to/mcp-nutrition-tools/src/mcp_bridge.py",
+                "--server-url", 
+                "http://localhost:8080"
+            ],
+            "cwd": "/path/to/mcp-nutrition-tools"
+        }
+    },
+
+    "_option_3": "=== CUSTOM SERVER ===",
+    "_option_3_note": "For your own deployed server",
+    "mcpServers_custom": {
+        "usda-nutrition": {
+            "command": "python3",
+            "args": [
+                "/path/to/mcp-nutrition-tools/src/mcp_bridge.py", 
+                "--server-url",
+                "https://your-nutrition-server.com"
+            ],
+            "cwd": "/path/to/mcp-nutrition-tools"
+        }
+    },
+
+    "_clean_example": "=== MOST USERS: Copy this example ===",
+    "_clean_example_note": "Replace /Users/username with your actual path",
+    "mcpServers": {
+        "usda-nutrition": {
+            "command": "python3",
+            "args": ["/Users/username/mcp-nutrition-tools/src/mcp_bridge.py"],
+            "cwd": "/Users/username/mcp-nutrition-tools"
+        }
+    }
+}
