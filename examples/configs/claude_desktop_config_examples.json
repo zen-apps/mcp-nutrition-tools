@@ -1,0 +1,62 @@
+{
+    "_comment": "USDA Nutrition MCP - Claude Desktop Configuration",
+    "_choose_one_option": "Select the option that fits your needs",
+    "_option_1": "=== HOSTED SERVICE (Default) ===",
+    "_option_1_description": "Uses our shared server - 1,000 requests/hour total for all users",
+    "mcpServers_hosted": {
+        "usda-nutrition": {
+            "command": "python3",
+            "args": [
+                "/path/to/mcp-nutrition-tools/src/mcp_bridge.py",
+                "--server-url",
+                "https://usda-nutrition-mcp-oc46l7ob5a-uc.a.run.app"
+            ],
+            "cwd": "/path/to/mcp-nutrition-tools"
+        }
+    },
+    "_option_2": "=== LOCAL DEPLOYMENT (Unlimited) ===",
+    "_option_2_description": "Run your own server with your USDA API key - unlimited requests",
+    "mcpServers_local": {
+        "usda-nutrition": {
+            "command": "python3",
+            "args": [
+                "/path/to/mcp-nutrition-tools/src/mcp_bridge.py",
+                "--server-url",
+                "http://localhost:8080"
+            ],
+            "cwd": "/path/to/mcp-nutrition-tools"
+        }
+    },
+    "_option_3": "=== CUSTOM SERVER ===",
+    "_option_3_description": "Use your own deployed server",
+    "mcpServers_custom": {
+        "usda-nutrition": {
+            "command": "python3",
+            "args": [
+                "/path/to/mcp-nutrition-tools/src/mcp_bridge.py",
+                "--server-url",
+                "https://your-nutrition-server.com"
+            ],
+            "cwd": "/path/to/mcp-nutrition-tools"
+        }
+    },
+    "_final_config": "=== COPY ONE OPTION ABOVE ===",
+    "_instructions": [
+        "1. Choose hosted (easy, rate limited) or local (unlimited, requires setup)",
+        "2. Update /path/to/mcp-nutrition-tools with your actual path",
+        "3. For local: Get USDA API key from https://fdc.nal.usda.gov/api-guide.html",
+        "4. For local: Run 'docker run -p 8080:8080 -e USDA_API_KEY=your_key nutrition-mcp'",
+        "5. Remove all comments and save to ~/Library/Application Support/Claude/claude_desktop_config.json",
+        "6. Restart Claude Desktop"
+    ],
+    "_example_clean_config": "Most users should use this:",
+    "mcpServers": {
+        "usda-nutrition": {
+            "command": "python3",
+            "args": [
+                "/Users/username/mcp-nutrition-tools/src/mcp_bridge.py"
+            ],
+            "cwd": "/Users/username/mcp-nutrition-tools"
+        }
+    }
+}

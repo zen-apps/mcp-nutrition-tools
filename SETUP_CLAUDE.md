@@ -104,3 +104,6 @@ After configuration, restart Claude Desktop and try:
 - Make sure Python path is correct in config
 - Try using full absolute paths
 - Check file permissions on scripts
+
+
+$ mcp-nutrition-tools % python src/mcp_bridge.py --server-url https://usda-nutrition-mcp-oc46l7ob5a-uc.a.run.app
