@@ -1,6 +1,6 @@
-# 🥗 USDA Nutrition MCP Server
+# 🥗 USDA Nutrition MCP Enabled Server
 
-> **Professional Model Context Protocol (MCP) server for USDA FoodData Central**  
+> **Professional Model Context Protocol (MCP) enabled server for USDA FoodData Central**  
 > Transforms 600k+ foods into intelligent nutrition tools for Claude Desktop and other MCP clients
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -16,9 +16,7 @@ This project showcases **professional MCP implementation skills**:
 ✅ **Production Bridge** - Smart `mcp_bridge.py` with hosted/local/custom server support  
 ✅ **Three Deployment Options** - Hosted service, local development, custom server  
 ✅ **Type-Safe Models** - Pydantic schemas with proper validation  
-✅ **Rate Limiting & Retries** - Production-ready USDA API client  
 ✅ **Docker + Cloud Run** - Complete deployment pipeline  
-✅ **Comprehensive Testing** - pytest with async support and API mocking  
 
 ## 🚀 Quick Start for Claude Desktop
 
@@ -164,7 +162,7 @@ Claude Desktop ←→ mcp_bridge.py ←→ HTTP API ←→ USDA FoodData Central
 - `src/mcp_server.py` - FastMCP protocol server
 - `src/mcp_http_server.py` - FastAPI HTTP server  
 - `src/mcp_bridge.py` - Smart bridge with server auto-detection
-- `src/usda_client.py` - Production API client with retry logic
+- `src/usda_client.py` - API client with retry logic
 - `src/models/` - Type-safe Pydantic schemas
 
 ### Smart Bridge Logic
@@ -228,7 +226,6 @@ The production deployment includes:
 - Automatic SSL/HTTPS
 - Health checks and monitoring
 - Auto-scaling based on demand
-- Rate limiting and retry logic
 - Structured logging
 
 ## 🔑 Configuration
